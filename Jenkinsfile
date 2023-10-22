@@ -20,6 +20,13 @@ pipeline{
                 }
             }
         }
-        
+        stage ( Build docker image ) {
+            steps {
+                script {
+                    dockerImage = docker.build "${IMAGE_REPO_NAME}:${IMAGE_TAG}"
+                }
+            }
+
+        }
     } 
  }
