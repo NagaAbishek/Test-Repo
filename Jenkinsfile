@@ -1,19 +1,25 @@
 pipeline{
     agent any
-    /*environment {
-        AWS_ACCOUNT_ID="YOUR_ACCOUNT_ID_HERE"
-        AWS_DEFAULT_REGION="CREATED_AWS_ECR_CONTAINER_REPO_REGION" 
-        IMAGE_REPO_NAME="ECR_REPO_NAME"
+    environment {
+        AWS_ACCOUNT_ID="043437012221"
+        AWS_DEFAULT_REGION="ap-south-1" 
+        IMAGE_REPO_NAME="jenkins-docker"
         IMAGE_TAG="latest"
         REPOSITORY_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}"
-
-    } */
+    } 
     stages {
         stage ( git clone ) {
-        steps {
-            git branch: 'main', url: 'https://github.com/NagaAbishek/Test-Repo.git'
+            steps {
+                git branch: 'main', url: 'https://github.com/NagaAbishek/Test-Repo.git'
             }
         }
-        //stage ( Login into aws ECR )
+        stage ( Login into aws ECR ) {
+            steps {
+                script {
+                    sh "aws ecr get-login-password - region ${AWS_DEFAULT_REGION} | docker login - username AWS - password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
+                }
+
+            }
+        }
     } 
  }
