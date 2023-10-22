@@ -15,6 +15,13 @@ pipeline {
                 }
             }
         }
+        stage ( 'Remove oild image' ) {
+            steps {
+                script {
+                  sh 'docker rmi jenkins-docker:latest || true'
+                }
+            }
+        }
         stage ( 'Build image' ) {
             steps {
                 script{
@@ -36,12 +43,12 @@ pipeline {
                 }
             }
         }
-        stage ( 'Run container' ) {
+        /*stage ( 'Run container' ) {
             steps {
                 script {
                     sh 'aws ecs run-task --cluster jenkins-docker --launch-type EC2 --count 1 --task-definition jenkins-docker'
                 }
             }
-        }
+        }*/
     }
 }
