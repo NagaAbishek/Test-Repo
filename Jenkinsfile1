@@ -1,0 +1,47 @@
+pipeline {
+    agent any
+    stages {
+        stage ( 'Clone git' ) {
+            steps {
+                script {
+                    git branch: 'main', url: 'https://github.com/NagaAbishek/Test-Repo'
+                }
+            }
+        }
+        stage ( 'docker login' ) {
+            steps {
+                script {
+                  sh 'aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 043437012221.dkr.ecr.ap-south-1.amazonaws.com'
+                }
+            }
+        }
+        stage ( 'Build image' ) {
+            steps {
+                script{
+                    sh 'docker build -t jenkins-docker .'
+                }
+            }
+        }
+        stage ( 'Docker tag' ) {
+            steps {
+                script {
+                    sh 'docker tag jenkins-docker:latest 043437012221.dkr.ecr.ap-south-1.amazonaws.com/jenkins-docker:latest'
+                }
+            }
+        }
+        stage ( 'Docker image push to ECR' ) {
+            steps {
+                script {
+                    sh 'docker push 043437012221.dkr.ecr.ap-south-1.amazonaws.com/jenkins-docker:latest'
+                }
+            }
+        }
+        stage ( 'Run container' ) {
+            steps {
+                script {
+                    sh 'aws ecs run-task --cluster jenkins-docker --launch-type EC2 --count 1 --task-definition jenkins-docker'
+                }
+            }
+        }
+    }
+}
