@@ -14,5 +14,6 @@ pipeline{
             git branch: 'main', url: 'https://github.com/NagaAbishek/Test-Repo.git'
             }
         }
+        //stage ( Login into aws ECR )
     } 
  }
