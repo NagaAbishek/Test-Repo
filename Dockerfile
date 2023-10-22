@@ -1,14 +1,15 @@
-# Use an official Python runtime as a parent image
-FROM python:3.9-slim
 
-# Set the working directory in the container
-WORKDIR /app
-
-# Copy your application's code into the container
-COPY . /app
-
-# Install any necessary dependencies
-RUN pip install -r requirements.txt
-
-# Specify the command to run when the container starts
-CMD [ "python", "app.py" ]
+# The line below states we will base our new image on the Latest Official Ubuntu 
+FROM ubuntu:latest
+#
+# Update the image to the latest packages
+RUN apt-get update && apt-get upgrade -y
+#
+# Install NGINX to test.
+RUN apt-get install nginx -y
+#
+# Expose port 80
+EXPOSE 80
+#
+# Last is the actual command to start up NGINX within our Container
+CMD ["nginx", "-g", "daemon off;"]
