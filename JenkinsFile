@@ -1,0 +1,78 @@
+pipeline {
+    agent any
+    stages {
+        stage ( 'git clone' ) {
+            steps {
+                git branch: 'main', url: 'https://github.com/NagaAbishek/argocd-1'
+            }
+        }
+        stage ( 'maven compile' ) {
+            steps {
+                sh 'cd java-maven-sonar-argocd-helm-k8s/spring-boot-app && mvn clean compile'
+                sh 'cd java-maven-sonar-argocd-helm-k8s/spring-boot-app && mvn clean test'
+            }
+        }
+        stage ( 'Static Code Analysis' ) {
+            environment {
+                SONAR_URL = "http://15.207.100.47:9000"
+            }
+            steps {
+                withCredentials([string(credentialsId: 'sonarqube', variable: 'SONARQUBE')]) {
+                    sh 'cd java-maven-sonar-argocd-helm-k8s/spring-boot-app && mvn sonar:sonar -Dsonar.login=$SONARQUBE -Dsonar.host.url=${SONAR_URL}'
+                }
+            }
+        }
+        stage ( 'maven Build' ) {
+            steps {
+                sh 'cd java-maven-sonar-argocd-helm-k8s/spring-boot-app && mvn install'
+            }
+        }
+        stage ( 'Build and push Docker Image to ECR' ) {
+            environment {
+                    AWS_ACCOUNT_ID="043437012221"
+                    AWS_DEFAULT_REGION="ap-south-1" 
+                    IMAGE_REPO_NAME="argocd-ecr"
+                    IMAGE_TAG="latest"
+                    REPOSITORY_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}"
+                    DOCKER_IMAGE= "newargocd"
+                }
+            steps {
+                    sh 'aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com'
+                    sh 'cd java-maven-sonar-argocd-helm-k8s/spring-boot-app && docker build -t ${IMAGE_REPO_NAME}:${IMAGE_TAG} .'
+                    sh "docker tag ${IMAGE_REPO_NAME}:${IMAGE_TAG} ${REPOSITORY_URI}:$IMAGE_TAG"
+                    sh "docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}:${IMAGE_TAG}"
+            }
+        }
+    }
+}
+
+
+
+aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 043437012221.dkr.ecr.ap-south-1.amazonaws.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
